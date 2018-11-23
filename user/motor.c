@@ -1,0 +1,114 @@
+#include <c_types.h>
+#include <eagle_soc.h> 
+#include <gpio.h>
+
+#include "debug.h"
+
+
+#define PWM0_MUX	PERIPHS_IO_MUX_MTDI_U
+#define PWM0_NUM	12
+#define PWM0_FUNC	FUNC_GPIO12
+#define PWM1_MUX	PERIPHS_IO_MUX_MTDO_U
+#define PWM1_NUM	15
+#define PWM1_FUNC	FUNC_GPIO15
+#define PWM2_MUX	PERIPHS_IO_MUX_MTCK_U
+#define PWM2_NUM	13
+#define PWM2_FUNC	FUNC_GPIO13
+#define PWM3_MUX	PERIPHS_IO_MUX_GPIO4_U
+#define PWM3_NUM	4
+#define PWM3_FUNC	FUNC_GPIO4
+#define PWM_CHANNEL 4
+#define PWM_PERIOD	10
+
+
+LOCAL uint8_t cycle;
+LOCAL ETSTimer pwm_timer; 
+
+void pwm_timer_func() {
+	switch (cycle) {
+		case 0:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 0);
+			break;
+		case 1:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 0);
+			break;
+		case 2:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 0);
+			break;
+		case 3:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 0);
+			break;
+		case 4:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 0);
+			break;
+		case 5:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 1);
+			break;
+		case 6:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 1);
+			break;
+		case 7:
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 1);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 0);
+			GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 1);
+			break;
+	}
+	cycle++;
+	if (cycle == 8) {
+		cycle = 0;
+	}
+}
+
+void motor_rotate() {
+	os_timer_disarm(&pwm_timer);
+    os_timer_setfn(&pwm_timer, (os_timer_func_t *)pwm_timer_func, NULL);
+    os_timer_arm(&pwm_timer, PWM_PERIOD, 1);
+}
+
+
+void motor_stop() {
+	os_timer_disarm(&pwm_timer);
+}
+
+
+void motor_init() {
+	PIN_FUNC_SELECT(PWM0_MUX, PWM0_FUNC);
+	//PIN_PULLUP_DIS(PWM0_MUX);
+	GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM0_NUM), 1);
+
+	PIN_FUNC_SELECT(PWM1_MUX, PWM1_FUNC);
+	//PIN_PULLUP_DIS(PWM1_MUX);
+	GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM1_NUM), 1);
+
+	PIN_FUNC_SELECT(PWM2_MUX, PWM2_FUNC);
+	//PIN_PULLUP_DIS(PWM2_MUX);
+	GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM2_NUM), 1);
+
+	PIN_FUNC_SELECT(PWM3_MUX, PWM3_FUNC);
+	//PIN_PULLUP_DIS(PWM3_MUX);
+	GPIO_OUTPUT_SET(GPIO_ID_PIN(PWM3_NUM), 1);
+}
+
+
