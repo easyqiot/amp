@@ -21,15 +21,12 @@
 #define VERSION				"0.1.0"
 
 
-/* GPIO */
-
 LOCAL EasyQSession eq;
 
 #define CMD_PLAY	0x04CFC17E
 #define CMD_ON		0x04CFE25D
 #define CMD_STOP	0x04CFD16E
 #define AMP_SUPPLY_QUEUE	"amp:supply"
-
 
 void
 fota_report_status(const char *q) {
@@ -52,11 +49,27 @@ easyq_message_cb(void *arg, const char *queue, const char *msg,
 	if (strcmp(queue, FOTA_QUEUE) == 0) {
 		if (msg[0] == 'R') {
 			INFO("Rebooting to FOTA ROM\r\n");
+			volume_shutdown();
 			system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
 			system_upgrade_reboot();
 		}
 		else if (msg[0] == 'I') {
 			fota_report_status(FOTA_STATUS_QUEUE);
+		}
+	}
+	else if (strcmp(queue, VOLUME_QUEUE) == 0) {
+		uint16_t vol = atoi(msg);
+		if (msg[0] == '=') {
+			vol = atoi(msg + 1);
+			volume_set_current(vol);
+			return;
+		}
+		vol = atoi(msg);
+		if (msg[0] == '+' || msg[0] == '-') {
+			volume_increase(vol);
+		}
+		else {
+			volume_set(vol);
 		}
 	}
 }
@@ -65,10 +78,9 @@ easyq_message_cb(void *arg, const char *queue, const char *msg,
 void ICACHE_FLASH_ATTR
 easyq_connect_cb(void *arg) {
 	INFO("EASYQ: Connected to %s:%d\r\n", eq.hostname, eq.port);
-	INFO("\r\n***** InfraRed Receiver "VERSION"****\r\n");
-	const char * queues[] = {FOTA_QUEUE};
-	easyq_pull_all(&eq, queues, 1);
-	motor_rotate();
+	INFO("\r\n***** OCL Power Amplifier "VERSION"****\r\n");
+	const char * queues[] = {FOTA_QUEUE, VOLUME_QUEUE};
+	easyq_pull_all(&eq, queues, 2);
 }
 
 
@@ -101,7 +113,6 @@ void user_init(void) {
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
     os_delay_us(60000);
 
-
 	EasyQError err = easyq_init(&eq, EASYQ_HOSTNAME, EASYQ_PORT, EASYQ_LOGIN);
 	if (err != EASYQ_OK) {
 		ERROR("EASYQ INIT ERROR: %d\r\n", err);
@@ -112,7 +123,7 @@ void user_init(void) {
 	eq.onconnectionerror = easyq_connection_error_cb;
 	eq.onmessage = easyq_message_cb;
 	
-	motor_init();
+	volume_init();
     WIFI_Connect(WIFI_SSID, WIFI_PSK, wifi_connect_cb);
     INFO("System started ...\r\n");
 }
