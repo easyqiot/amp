@@ -64,6 +64,12 @@ easyq_message_cb(void *arg, const char *queue, const char *msg,
 			volume_set_current(vol);
 			return;
 		}
+		if (msg[0] == '?') {
+			char str[50];
+			os_sprintf(str, "%d", volume_get());
+			easyq_push(&eq, msg+1, str);
+			return;
+		}
 		vol = atoi(msg);
 		if (msg[0] == '+' || msg[0] == '-') {
 			volume_increase(vol);
@@ -113,6 +119,7 @@ void user_init(void) {
     uart_init(BIT_RATE_115200, BIT_RATE_115200);
     os_delay_us(60000);
 
+	// EasyQ
 	EasyQError err = easyq_init(&eq, EASYQ_HOSTNAME, EASYQ_PORT, EASYQ_LOGIN);
 	if (err != EASYQ_OK) {
 		ERROR("EASYQ INIT ERROR: %d\r\n", err);
@@ -123,7 +130,9 @@ void user_init(void) {
 	eq.onconnectionerror = easyq_connection_error_cb;
 	eq.onmessage = easyq_message_cb;
 	
+	// Volume Motor
 	volume_init();
+
     WIFI_Connect(WIFI_SSID, WIFI_PSK, wifi_connect_cb);
     INFO("System started ...\r\n");
 }

@@ -59,6 +59,7 @@
 
 LOCAL bool duty;
 LOCAL int32_t ticks;
+LOCAL void (*stop_callback) (void);
 
 
 enum led_status {
@@ -79,6 +80,9 @@ void motor_stop() {
     RTC_REG_WRITE(FRC1_CTRL_ADDRESS, 0);
 	CLEAR_CHANNELS();
 	update_led(LED_OFF);
+	if (stop_callback) {
+		stop_callback();
+	}
 }
 
 
@@ -113,6 +117,11 @@ void motor_rotate(int32_t t) {
     TM1_EDGE_INT_ENABLE();
     ETS_FRC1_INTR_ENABLE();
 	hw_timer_arm(PWM_PERIOD);
+}
+
+
+void motor_set_stop_callback(void (*done)(void)) {
+	stop_callback = done;
 }
 
 
