@@ -7,6 +7,14 @@
 #include "debug.h"
 #include "user_config.h"
 
+
+#define WIFI_USE_LED()	wifi_status_led_install(WIFI_LED_NUM, \
+		WIFI_LED_MUX, WIFI_LED_FUNC)
+
+#define WIFI_RELEASE_LED()	wifi_status_led_uninstall()
+#define WIFI_LED(on)	GPIO_OUTPUT_SET(GPIO_ID_PIN(WIFI_LED_NUM), !on);
+
+
 static ETSTimer WiFiLinker;
 WifiCallback wifiCb = NULL;
 static uint8_t wifiStatus = STATION_IDLE, lastWifiStatus = STATION_IDLE;
@@ -18,11 +26,14 @@ static void ICACHE_FLASH_ATTR wifi_check_ip(void *arg)
 	wifi_get_ip_info(STATION_IF, &ipConfig);
 	wifiStatus = wifi_station_get_connect_status();
 	if (wifiStatus == STATION_GOT_IP && ipConfig.ip.addr != 0) {
+		WIFI_RELEASE_LED();
+		WIFI_LED(0);
 		os_timer_setfn(&WiFiLinker, (os_timer_func_t *)wifi_check_ip, NULL);
 		os_timer_arm(&WiFiLinker, 2000, 0);
 	}
 	else
 	{
+		WIFI_USE_LED();
 		if(wifi_station_get_connect_status() == STATION_WRONG_PASSWORD) {
 			INFO("STATION_WRONG_PASSWORD\r\n");
 			wifi_station_connect();
@@ -55,14 +66,15 @@ void ICACHE_FLASH_ATTR WIFI_Connect(uint8_t* ssid, uint8_t* pass, WifiCallback c
 
 	INFO("WIFI_INIT\r\n");
 	wifi_set_opmode_current(STATION_MODE);
+	WIFI_USE_LED();
 
-	if (!wifi_set_sleep_level(MAX_SLEEP_T)) {
-		ERROR("Cannot change WIFI level.\r\n");
-	}
-	if (!wifi_set_listen_interval(WIFI_SLEEP_LEVEL)) {
-		ERROR("Cannot change WIFI beacon interval.\r\n");
-	}
-	if (!wifi_set_sleep_type(LIGHT_SLEEP_T)) {
+//	if (!wifi_set_sleep_level(MIN_SLEEP_T)) {
+//		ERROR("Cannot change WIFI level.\r\n");
+//	}
+//	if (!wifi_set_listen_interval(WIFI_SLEEP_LEVEL)) {
+//		ERROR("Cannot change WIFI beacon interval.\r\n");
+//	}
+	if (!wifi_set_sleep_type(NONE_SLEEP_T)) {
 		ERROR("Cannot change WIFI sleep type.\r\n");
 	}
 

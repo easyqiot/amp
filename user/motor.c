@@ -7,9 +7,9 @@
 
 /* GPIO */
 // LED
-#define LED_MUX		PERIPHS_IO_MUX_U0TXD_U
-#define LED_NUM		1
-#define LED_FUNC	FUNC_GPIO1
+//#define LED_MUX		PERIPHS_IO_MUX_U0TXD_U
+//#define LED_NUM		1
+//#define LED_FUNC	FUNC_GPIO1
 
 
 // PWM 0  PIN #9
@@ -62,16 +62,16 @@ LOCAL int32_t ticks;
 LOCAL void (*stop_callback) (void);
 
 
-enum led_status {
-	LED_OFF = 0,
-	LED_ON = 1,
-};
-
-
-void
-update_led(bool on) {
-	GPIO_OUTPUT_SET(GPIO_ID_PIN(LED_NUM), !on);
-}
+//enum led_status {
+//	LED_OFF = 0,
+//	LED_ON = 1,
+//};
+//
+//
+//void
+//update_led(bool on) {
+//	GPIO_OUTPUT_SET(GPIO_ID_PIN(LED_NUM), !on);
+//}
 
 
 void motor_stop() {
@@ -79,7 +79,7 @@ void motor_stop() {
     TM1_EDGE_INT_DISABLE();
     RTC_REG_WRITE(FRC1_CTRL_ADDRESS, 0);
 	CLEAR_CHANNELS();
-	update_led(LED_OFF);
+//	update_led(LED_OFF);
 	if (stop_callback) {
 		stop_callback();
 	}
@@ -108,7 +108,7 @@ void motor_rotate(int32_t t) {
 		ticks += t;
 		return;
 	}
-	update_led(LED_ON);
+//	update_led(LED_ON);
 	duty = false;
 	uint32_t flags = DIVDED_BY_16 | FRC1_ENABLE_TIMER | TM_EDGE_INT;
     RTC_REG_WRITE(FRC1_CTRL_ADDRESS, flags);
@@ -128,8 +128,8 @@ void motor_set_stop_callback(void (*done)(void)) {
 void motor_init() {
 	ticks = 0;
 
-	PIN_FUNC_SELECT(LED_MUX, LED_FUNC);
-	GPIO_OUTPUT_SET(GPIO_ID_PIN(LED_NUM), 1);
+//	PIN_FUNC_SELECT(LED_MUX, LED_FUNC);
+//	GPIO_OUTPUT_SET(GPIO_ID_PIN(LED_NUM), 1);
 
     ETS_FRC1_INTR_DISABLE();
     TM1_EDGE_INT_DISABLE();
