@@ -1,4 +1,4 @@
-# IR Remote  
+# WIFI controller for audio amplifier
 
 
 ### Build
@@ -11,8 +11,10 @@ to setup your environment.
 source esp-env/nonos/activate.sh
 
 cd esp-env/nonos/sdk/
-git clone git@github.com:easyqiot/ir-remote.git
-cd ir-remote 
-bash ./gen_misc.sh
+git clone git@github.com:easyqiot/amp.git
+cd amp
+make clean
+./gen.sh
+make flash
 ```
 
