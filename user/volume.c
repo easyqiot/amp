@@ -4,13 +4,15 @@
 //#include <osapi.h>
 #include <ets_sys.h>
 
+#include "partition.h"
 #include "debug.h"
 
 //#define VOLUME_MAX	1380
 #define VOLUME_MAX  1576	
 #define VOLUME_MIN	0
 #define VOLUME_SAVE_DELAY	1000
-#define VOLUME_PRIVATE_PARAM_SECTOR	0x7c
+#define VOLUME_PRIVATE_PARAM_SECTOR \
+	SYSTEM_PARTITION_CUSTOMER_PRIV_PARAM_ADDR / 0x1000 
 
 
 LOCAL ETSTimer save_timer;
